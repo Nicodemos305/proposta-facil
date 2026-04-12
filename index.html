@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Propostas</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --bg: #f5f6fa;
+            --paper: #ffffff;
+            --border: #dcdde1;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        @media (min-width: 900px) {
+            .container {
+                flex-direction: row;
+                align-items: flex-start;
+            }
+        }
+
+        /* Área do Formulário */
+        .controls {
+            flex: 1;
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 20px;
+        }
+
+        .controls h2 { margin-top: 0; color: var(--primary); }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 14px;
+            color: #333;
+        }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        .form-group textarea { resize: vertical; min-height: 80px; }
+
+        .btn-export {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            width: 100%;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .btn-export:hover { background-color: #219a52; }
+
+        /* Área da Proposta (A4 Preview) */
+        .preview-wrapper {
+            flex: 2;
+            overflow-x: auto;
+            display: flex;
+            justify-content: center;
+        }
+
+        .document-a4 {
+            background: var(--paper);
+            width: 210mm; /* Largura A4 */
+            min-height: 297mm; /* Altura A4 */
+            padding: 20mm;
+            box-sizing: border-box;
+            box-shadow: 0 0 10px rgba(0,0,0,0.15);
+            font-size: 12pt;
+            line-height: 1.5;
+            color: #000;
+        }
+
+        .doc-header { text-align: center; margin-bottom: 30px; font-weight: bold; }
+        
+        .doc-section { margin-bottom: 20px; }
+        .doc-section h3 { font-size: 13pt; text-decoration: underline; margin-bottom: 10px; }
+        
+        .info-grid { display: grid; gap: 5px; margin-bottom: 20px; }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 10px;
+            text-align: left;
+        }
+        th { background-color: #f2f2f2; }
+
+        .doc-footer { margin-top: 50px; text-align: right; }
+
+        @media (max-width: 800px) {
+            .document-a4 {
+                width: 100%; /* Adapta para telas menores na visualização */
+                min-height: auto;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="controls">
+        <h2>Dados da Proposta</h2>
+        
+        <div class="form-group">
+            <label>Prestador:</label>
+            <input type="text" id="inPrestador" value="A.N ARTES E CONSTRUÇÃO E REFORMAS LTDA">
+        </div>
+        <div class="form-group">
+            <label>CNPJ:</label>
+            <input type="text" id="inCnpj" value="52.136.585/0001-75">
+        </div>
+        <div class="form-group">
+            <label>Telefone:</label>
+            <input type="text" id="inTelefone" value="(21) 96442-4104">
+        </div>
+        <div class="form-group">
+            <label>Contratante:</label>
+            <input type="text" id="inContratante" value="CIEP Antonio Evaristo Morais">
+        </div>
+        <div class="form-group">
+            <label>Descrição do Serviço:</label>
+            <textarea id="inDescricao">Limpeza, restauração e vedação da laje da quadra de esportes, bem como a revitalização das arquibancadas da quadra (pintura da arquibancada e marcação da quadra de esportes), com fornecimento de materiais inclusos na execução</textarea>
+        </div>
+        <div class="form-group">
+            <label>Valor (R$):</label>
+            <input type="text" id="inValor" value="26.500,00">
+        </div>
+        <div class="form-group">
+            <label>Local e Data:</label>
+            <input type="text" id="inData" value="Rio de Janeiro, 06 de abril de 2026">
+        </div>
+
+        <button class="btn-export" onclick="exportarPDF()">Exportar para PDF</button>
+    </div>
+
+    <div class="preview-wrapper">
+        <div class="document-a4" id="documento-pdf">
+            <div class="doc-header">
+                PROPOSTA TÉCNICA E COMERCIAL
+            </div>
+
+            <div class="info-grid">
+                <div><strong>Prestador:</strong> <span id="outPrestador"></span></div>
+                <div><strong>CNPJ:</strong> <span id="outCnpj"></span></div>
+                <div><strong>Telefone:</strong> <span id="outTelefone"></span></div>
+                <div style="margin-top: 10px;"><strong>Contratante:</strong> <span id="outContratante"></span></div>
+            </div>
+
+            <div class="doc-section">
+                <h3>APRESENTAÇÃO</h3>
+                <p>A <span id="outPrestador2"></span> apresenta a presente proposta para execução de serviços de revitalização estrutural, visando a conservação do patrimônio e melhoria das condições físicas da unidade escolar.</p>
+            </div>
+
+            <div class="doc-section">
+                <h3>ESCOPO DOS SERVIÇOS</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Descrição do Serviço</th>
+                            <th style="width: 150px;">Valor (R$)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td id="outDescricao"></td>
+                            <td id="outValor"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="doc-section" style="font-weight: bold; margin-bottom: 30px;">
+                INVESTIMENTO TOTAL: R$ <span id="outValorTotal"></span>
+            </div>
+
+            <div class="doc-section">
+                <h3>COMPROMISSO TÉCNICO</h3>
+                <ul>
+                    <li>Execução por profissionais qualificados</li>
+                    <li>Utilização de materiais de qualidade</li>
+                    <li>Cumprimento de prazos acordados</li>
+                    <li>Entrega dentro dos padrões técnicos exigidos</li>
+                </ul>
+            </div>
+
+            <div class="doc-footer">
+                Validade da proposta: 60 dias. <br>
+                <span id="outData"></span>.
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Função para atualizar a visualização em tempo real
+    function atualizarPreview() {
+        document.getElementById('outPrestador').innerText = document.getElementById('inPrestador').value;
+        document.getElementById('outPrestador2').innerText = document.getElementById('inPrestador').value;
+        document.getElementById('outCnpj').innerText = document.getElementById('inCnpj').value;
+        document.getElementById('outTelefone').innerText = document.getElementById('inTelefone').value;
+        document.getElementById('outContratante').innerText = document.getElementById('inContratante').value;
+        document.getElementById('outDescricao').innerText = document.getElementById('inDescricao').value;
+        
+        const valor = document.getElementById('inValor').value;
+        document.getElementById('outValor').innerText = valor;
+        document.getElementById('outValorTotal').innerText = valor;
+        
+        document.getElementById('outData').innerText = document.getElementById('inData').value;
+    }
+
+    // Adiciona listeners para todos os inputs atualizarem o preview enquanto o usuário digita
+    const inputs = document.querySelectorAll('.controls input, .controls textarea');
+    inputs.forEach(input => {
+        input.addEventListener('input', atualizarPreview);
+    });
+
+    // Atualiza o preview na primeira carga da página
+    window.onload = atualizarPreview;
+
+    // Função para gerar o PDF
+    function exportarPDF() {
+        const elemento = document.getElementById('documento-pdf');
+        
+        // Configurações do PDF para garantir tamanho e qualidade
+        const opcoes = {
+            margin:       0,
+            filename:     'Proposta_Comercial.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        // Força a largura para A4 momentaneamente para garantir a quebra de linha correta no mobile
+        const larguraOriginal = elemento.style.width;
+        elemento.style.width = '210mm';
+
+        // Gera e faz o download
+        html2pdf().set(opcoes).from(elemento).save().then(() => {
+            // Restaura a largura original para o layout responsivo
+            elemento.style.width = larguraOriginal;
+        });
+    }
+</script>
+
+</body>
+</html>
