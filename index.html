@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerador de Propostas Profissional</title>
+    <!-- Carregando bibliotecas essenciais -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
@@ -45,7 +46,7 @@
             background: white;
             padding: 25px;
             border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             position: sticky;
             top: 20px;
             max-height: 90vh;
@@ -65,14 +66,19 @@
         }
         .form-group input, .form-group textarea {
             width: 100%;
-            padding: 8px 12px;
+            padding: 10px 12px;
             border: 1px solid var(--border);
             border-radius: 4px;
             box-sizing: border-box;
             font-family: inherit;
             font-size: 14px;
+            transition: border-color 0.2s;
         }
-        .form-group textarea { resize: vertical; min-height: 60px; }
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        .form-group textarea { resize: vertical; min-height: 80px; }
 
         .btn-export {
             background-color: var(--accent);
@@ -84,10 +90,16 @@
             font-weight: bold;
             border-radius: 4px;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: all 0.3s;
             margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
         }
-        .btn-export:hover { background-color: #219a52; }
+        .btn-export:hover { background-color: #219a52; transform: translateY(-1px); }
+        .btn-export:active { transform: translateY(0); }
+        .btn-export:disabled { background-color: #bdc3c7; cursor: not-allowed; }
 
         /* Área da Proposta (A4 Preview) */
         .preview-wrapper {
@@ -95,8 +107,8 @@
             overflow-x: auto;
             display: flex;
             justify-content: center;
-            background: #e1e1e1;
-            padding: 20px;
+            background: #cbd5e0;
+            padding: 40px 20px;
             border-radius: 8px;
         }
 
@@ -104,72 +116,97 @@
             background: var(--paper);
             width: 210mm;
             min-height: 297mm;
-            padding: 25mm 20mm;
+            padding: 20mm 15mm;
             box-sizing: border-box;
-            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
             font-size: 11pt;
-            line-height: 1.6;
+            line-height: 1.5;
             color: #333;
+            /* Garante que o conteúdo seja renderizado corretamente pelo html2canvas */
+            position: relative;
         }
 
         .doc-header { 
             text-align: center; 
             margin-bottom: 40px; 
             font-weight: bold; 
-            font-size: 16pt;
+            font-size: 18pt;
             color: var(--primary);
-            border-bottom: 3px solid var(--primary);
-            padding-bottom: 10px;
+            border-bottom: 4px solid var(--primary);
+            padding-bottom: 15px;
         }
         
-        .doc-section { margin-bottom: 25px; }
+        .doc-section { margin-bottom: 30px; }
         .doc-section h3 { 
             font-size: 12pt; 
             text-transform: uppercase;
-            border-left: 4px solid var(--primary);
-            padding-left: 10px;
-            margin-bottom: 12px;
-            background: #f9f9f9;
+            border-left: 5px solid var(--primary);
+            padding-left: 12px;
+            margin-bottom: 15px;
+            background: #f8fafc;
+            padding-top: 5px;
+            padding-bottom: 5px;
         }
         
         .info-grid { 
             display: grid; 
             grid-template-columns: 1fr 1fr;
-            gap: 10px; 
+            gap: 15px; 
             margin-bottom: 30px; 
             font-size: 10pt;
-            background: #fdffdf;
-            padding: 15px;
-            border: 1px solid #eee;
+            background: #fffdf2;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
         }
         
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
         th, td {
-            border: 1px solid #ccc;
+            border: 1px solid #cbd5e0;
             padding: 12px;
             text-align: left;
         }
-        th { background-color: #f2f2f2; font-size: 10pt; }
+        th { background-color: #f1f5f9; font-size: 10pt; color: var(--primary); }
 
         .payment-box {
             margin-top: 20px;
-            padding: 15px;
-            border: 1px dashed #2c3e50;
-            background: #f4f7f9;
-            border-radius: 4px;
+            padding: 20px;
+            border: 2px dashed #cbd5e0;
+            background: #f8fafc;
+            border-radius: 6px;
         }
 
-        .doc-footer { margin-top: 50px; text-align: right; border-top: 1px solid #eee; pt: 10px; }
+        .doc-footer { 
+            margin-top: 60px; 
+            text-align: right; 
+            border-top: 1px solid #e2e8f0; 
+            padding-top: 20px; 
+        }
 
-        @media (max-width: 800px) {
+        /* Loading Spinner */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            display: none;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 850px) {
+            .preview-wrapper { padding: 10px; background: none; }
             .document-a4 {
                 width: 100%;
                 min-height: auto;
                 padding: 15px;
+                box-shadow: none;
+                border: 1px solid #ddd;
             }
         }
     </style>
@@ -209,7 +246,7 @@
         </div>
 
         <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-        <h3 style="font-size: 0.9rem; color: #555;">PAGAMENTO (OPCIONAL)</h3>
+        <h3 style="font-size: 0.8rem; color: #7f8c8d; letter-spacing: 1px;">CONDIÇÕES DE PAGAMENTO (OPCIONAL)</h3>
 
         <div class="form-group">
             <label>Forma de Pagamento:</label>
@@ -229,7 +266,10 @@
             <input type="text" id="inData" value="Rio de Janeiro, 13 de abril de 2024">
         </div>
 
-        <button class="btn-export" onclick="exportarPDF()">Gerar Orçamento PDF</button>
+        <button class="btn-export" id="btnExportar" onclick="exportarPDF()">
+            <div class="spinner" id="btnSpinner"></div>
+            <span>Gerar Orçamento PDF</span>
+        </button>
     </div>
 
     <div class="preview-wrapper">
@@ -239,20 +279,20 @@
             </div>
 
             <div class="info-grid">
-                <div><strong>PRESTADOR:</strong> <span id="outPrestador"></span></div>
-                <div><strong>CNPJ:</strong> <span id="outCnpj"></span></div>
-                <div style="grid-column: span 2; border-top: 1px solid #eee; pt: 5px; mt: 5px;">
-                    <strong>CONTRATANTE:</strong> <span id="outContratante"></span>
+                <div><strong>PRESTADOR:</strong> <br><span id="outPrestador"></span></div>
+                <div><strong>CNPJ:</strong> <br><span id="outCnpj"></span></div>
+                <div style="grid-column: span 2; border-top: 1px solid #cbd5e0; padding-top: 10px; margin-top: 5px;">
+                    <strong>CONTRATANTE:</strong> <br><span id="outContratante"></span>
                 </div>
             </div>
 
             <div class="doc-section">
-                <h3>APRESENTAÇÃO</h3>
-                <p id="outApresentacao"></p>
+                <h3>1. APRESENTAÇÃO</h3>
+                <p id="outApresentacao" style="text-align: justify;"></p>
             </div>
 
             <div class="doc-section">
-                <h3>ESCOPO E VALORES</h3>
+                <h3>2. ESCOPO E VALORES</h3>
                 <table>
                     <thead>
                         <tr>
@@ -263,23 +303,24 @@
                     <tbody>
                         <tr>
                             <td id="outDescricao" style="white-space: pre-wrap;"></td>
-                            <td style="text-align: right; font-weight: bold;">R$ <span id="outValor"></span></td>
+                            <td style="text-align: right; font-weight: bold; font-size: 12pt;">R$ <span id="outValor"></span></td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
-            <!-- Bloco de Pagamento (Só aparece se preenchido) -->
             <div id="outPagamentoContainer" class="doc-section payment-box" style="display: none;">
-                <h3>CONDIÇÕES DE PAGAMENTO</h3>
+                <h3 style="background: none; border: none; padding-left: 0;">CONDIÇÕES DE PAGAMENTO</h3>
                 <div id="outFormaPagamentoRow"><strong>Método:</strong> <span id="outFormaPagamento"></span></div>
                 <div id="outParcelasRow"><strong>Parcelamento:</strong> <span id="outParcelas"></span></div>
-                <div id="outPixRow" style="margin-top: 5px; color: #2c3e50;"><strong>Chave PIX para Depósito:</strong> <span id="outPix"></span></div>
+                <div id="outPixRow" style="margin-top: 10px; color: #1a202c; padding: 10px; background: #ebf8ff; border-radius: 4px;">
+                    <strong>Chave PIX:</strong> <span id="outPix" style="font-family: monospace; font-size: 11pt;"></span>
+                </div>
             </div>
 
             <div class="doc-section">
-                <h3>TERMOS TÉCNICOS</h3>
-                <ul style="font-size: 10pt;">
+                <h3>3. TERMOS TÉCNICOS</h3>
+                <ul style="font-size: 10pt; color: #4a5568;">
                     <li>Validade desta proposta: 15 dias corridos.</li>
                     <li>Garantia dos serviços conforme legislação vigente.</li>
                     <li>Limpeza e organização do local mantidas durante a execução.</li>
@@ -289,8 +330,9 @@
             <div class="doc-footer">
                 <p><span id="outData"></span></p>
                 <br><br>
-                <div style="display: inline-block; width: 250px; border-top: 1px solid #000; text-align: center; font-size: 10pt;">
-                    Assinatura do Prestador
+                <div style="display: inline-block; width: 280px; border-top: 1px solid #000; text-align: center; font-size: 10pt; padding-top: 5px;">
+                    <strong>Assinatura do Prestador</strong><br>
+                    <small id="footerEmpresa"></small>
                 </div>
             </div>
         </div>
@@ -298,66 +340,99 @@
 </div>
 
 <script>
+    const outElements = {
+        prestador: document.getElementById('outPrestador'),
+        footerEmpresa: document.getElementById('footerEmpresa'),
+        cnpj: document.getElementById('outCnpj'),
+        contratante: document.getElementById('outContratante'),
+        apresentacao: document.getElementById('outApresentacao'),
+        descricao: document.getElementById('outDescricao'),
+        valor: document.getElementById('outValor'),
+        data: document.getElementById('outData'),
+        pagamentoContainer: document.getElementById('outPagamentoContainer'),
+        forma: document.getElementById('outFormaPagamento'),
+        formaRow: document.getElementById('outFormaPagamentoRow'),
+        pix: document.getElementById('outPix'),
+        pixRow: document.getElementById('outPixRow'),
+        parcelas: document.getElementById('outParcelas'),
+        parcelasRow: document.getElementById('outParcelasRow')
+    };
+
     function atualizarPreview() {
-        // Dados básicos
         const prestador = document.getElementById('inPrestador').value;
-        document.getElementById('outPrestador').innerText = prestador;
-        document.getElementById('outCnpj').innerText = document.getElementById('inCnpj').value;
-        document.getElementById('outContratante').innerText = document.getElementById('inContratante').value;
-        
-        // Apresentação e Descrição
-        document.getElementById('outApresentacao').innerText = document.getElementById('inApresentacao').value;
-        document.getElementById('outDescricao').innerText = document.getElementById('inDescricao').value;
-        
-        // Valores
-        const valor = document.getElementById('inValor').value;
-        document.getElementById('outValor').innerText = valor;
-        
-        // Data
-        document.getElementById('outData').innerText = document.getElementById('inData').value;
+        outElements.prestador.innerText = prestador;
+        outElements.footerEmpresa.innerText = prestador;
+        outElements.cnpj.innerText = document.getElementById('inCnpj').value;
+        outElements.contratante.innerText = document.getElementById('inContratante').value;
+        outElements.apresentacao.innerText = document.getElementById('inApresentacao').value;
+        outElements.descricao.innerText = document.getElementById('inDescricao').value;
+        outElements.valor.innerText = document.getElementById('inValor').value;
+        outElements.data.innerText = document.getElementById('inData').value;
 
-        // Lógica do Bloco de Pagamento Opcional
-        const forma = document.getElementById('inFormaPagamento').value;
-        const pix = document.getElementById('inPix').value;
-        const parcelas = document.getElementById('inParcelas').value;
-        const container = document.getElementById('outPagamentoContainer');
+        const fVal = document.getElementById('inFormaPagamento').value;
+        const pVal = document.getElementById('inPix').value;
+        const parVal = document.getElementById('inParcelas').value;
 
-        if (forma || pix || parcelas) {
-            container.style.display = 'block';
-            
-            document.getElementById('outFormaPagamentoRow').style.display = forma ? 'block' : 'none';
-            document.getElementById('outFormaPagamento').innerText = forma;
-            
-            document.getElementById('outPixRow').style.display = pix ? 'block' : 'none';
-            document.getElementById('outPix').innerText = pix;
-            
-            document.getElementById('outParcelasRow').style.display = parcelas ? 'block' : 'none';
-            document.getElementById('outParcelas').innerText = parcelas;
+        if (fVal || pVal || parVal) {
+            outElements.pagamentoContainer.style.display = 'block';
+            outElements.formaRow.style.display = fVal ? 'block' : 'none';
+            outElements.forma.innerText = fVal;
+            outElements.pixRow.style.display = pVal ? 'block' : 'none';
+            outElements.pix.innerText = pVal;
+            outElements.parcelasRow.style.display = parVal ? 'block' : 'none';
+            outElements.parcelas.innerText = parVal;
         } else {
-            container.style.display = 'none';
+            outElements.pagamentoContainer.style.display = 'none';
         }
     }
 
-    const inputs = document.querySelectorAll('.controls input, .controls textarea');
-    inputs.forEach(input => {
+    // Listener para atualização em tempo real
+    document.querySelectorAll('.controls input, .controls textarea').forEach(input => {
         input.addEventListener('input', atualizarPreview);
     });
 
     window.onload = atualizarPreview;
 
-    function exportarPDF() {
+    async function exportarPDF() {
+        const btn = document.getElementById('btnExportar');
+        const spinner = document.getElementById('btnSpinner');
         const elemento = document.getElementById('documento-pdf');
-        const nomeArquivo = 'Orcamento_' + document.getElementById('inContratante').value.replace(/\s+/g, '_') + '.pdf';
         
+        // UI Feedback
+        btn.disabled = true;
+        spinner.style.display = 'inline-block';
+        
+        const nomeArquivo = 'Proposta_' + document.getElementById('inContratante').value.replace(/\s+/g, '_') + '.pdf';
+        
+        // Configurações otimizadas para evitar "branco"
         const opcoes = {
-            margin:       [10, 0, 10, 0],
-            filename:     nomeArquivo,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            margin: [10, 10, 10, 10], // Margens físicas no PDF
+            filename: nomeArquivo,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { 
+                scale: 2, 
+                useCORS: true, 
+                letterRendering: true,
+                scrollX: 0,
+                scrollY: 0,
+                windowWidth: 1000 // Força uma largura estável para renderização
+            },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
-        html2pdf().set(opcoes).from(elemento).save();
+        try {
+            // Pequeno delay para garantir que o navegador terminou qualquer processamento de fonte
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await html2pdf().set(opcoes).from(elemento).save();
+        } catch (error) {
+            console.error('Erro ao gerar PDF:', error);
+            // Fallback simples para o usuário se algo der errado
+            window.print(); 
+        } finally {
+            btn.disabled = false;
+            spinner.style.display = 'none';
+        }
     }
 </script>
 
