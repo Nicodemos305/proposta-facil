@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador de Propostas</title>
+    <title>Gerador de Propostas Profissional</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
@@ -11,10 +11,11 @@
             --bg: #f5f6fa;
             --paper: #ffffff;
             --border: #dcdde1;
+            --accent: #27ae60;
         }
 
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Arial, sans-serif;
             background-color: var(--bg);
             margin: 0;
             padding: 20px;
@@ -28,10 +29,10 @@
             flex-direction: column;
             gap: 30px;
             width: 100%;
-            max-width: 1200px;
+            max-width: 1300px;
         }
 
-        @media (min-width: 900px) {
+        @media (min-width: 1024px) {
             .container {
                 flex-direction: row;
                 align-items: flex-start;
@@ -47,39 +48,44 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             position: sticky;
             top: 20px;
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
-        .controls h2 { margin-top: 0; color: var(--primary); }
+        .controls h2 { margin-top: 0; color: var(--primary); font-size: 1.2rem; border-bottom: 2px solid var(--bg); padding-bottom: 10px; }
 
-        .form-group { margin-bottom: 15px; }
+        .form-group { margin-bottom: 12px; }
         .form-group label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
             font-weight: bold;
-            font-size: 14px;
-            color: #333;
+            font-size: 12px;
+            color: #555;
+            text-transform: uppercase;
         }
         .form-group input, .form-group textarea {
             width: 100%;
-            padding: 10px;
+            padding: 8px 12px;
             border: 1px solid var(--border);
             border-radius: 4px;
             box-sizing: border-box;
             font-family: inherit;
+            font-size: 14px;
         }
-        .form-group textarea { resize: vertical; min-height: 80px; }
+        .form-group textarea { resize: vertical; min-height: 60px; }
 
         .btn-export {
-            background-color: #27ae60;
+            background-color: var(--accent);
             color: white;
             border: none;
-            padding: 12px 20px;
+            padding: 15px 20px;
             width: 100%;
             font-size: 16px;
             font-weight: bold;
             border-radius: 4px;
             cursor: pointer;
             transition: background 0.3s;
+            margin-top: 10px;
         }
         .btn-export:hover { background-color: #219a52; }
 
@@ -89,26 +95,53 @@
             overflow-x: auto;
             display: flex;
             justify-content: center;
+            background: #e1e1e1;
+            padding: 20px;
+            border-radius: 8px;
         }
 
         .document-a4 {
             background: var(--paper);
-            width: 210mm; /* Largura A4 */
-            min-height: 297mm; /* Altura A4 */
-            padding: 20mm;
+            width: 210mm;
+            min-height: 297mm;
+            padding: 25mm 20mm;
             box-sizing: border-box;
-            box-shadow: 0 0 10px rgba(0,0,0,0.15);
-            font-size: 12pt;
-            line-height: 1.5;
-            color: #000;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            font-size: 11pt;
+            line-height: 1.6;
+            color: #333;
         }
 
-        .doc-header { text-align: center; margin-bottom: 30px; font-weight: bold; }
+        .doc-header { 
+            text-align: center; 
+            margin-bottom: 40px; 
+            font-weight: bold; 
+            font-size: 16pt;
+            color: var(--primary);
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 10px;
+        }
         
-        .doc-section { margin-bottom: 20px; }
-        .doc-section h3 { font-size: 13pt; text-decoration: underline; margin-bottom: 10px; }
+        .doc-section { margin-bottom: 25px; }
+        .doc-section h3 { 
+            font-size: 12pt; 
+            text-transform: uppercase;
+            border-left: 4px solid var(--primary);
+            padding-left: 10px;
+            margin-bottom: 12px;
+            background: #f9f9f9;
+        }
         
-        .info-grid { display: grid; gap: 5px; margin-bottom: 20px; }
+        .info-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr;
+            gap: 10px; 
+            margin-bottom: 30px; 
+            font-size: 10pt;
+            background: #fdffdf;
+            padding: 15px;
+            border: 1px solid #eee;
+        }
         
         table {
             width: 100%;
@@ -116,17 +149,25 @@
             margin-bottom: 20px;
         }
         th, td {
-            border: 1px solid #000;
-            padding: 10px;
+            border: 1px solid #ccc;
+            padding: 12px;
             text-align: left;
         }
-        th { background-color: #f2f2f2; }
+        th { background-color: #f2f2f2; font-size: 10pt; }
 
-        .doc-footer { margin-top: 50px; text-align: right; }
+        .payment-box {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px dashed #2c3e50;
+            background: #f4f7f9;
+            border-radius: 4px;
+        }
+
+        .doc-footer { margin-top: 50px; text-align: right; border-top: 1px solid #eee; pt: 10px; }
 
         @media (max-width: 800px) {
             .document-a4 {
-                width: 100%; /* Adapta para telas menores na visualização */
+                width: 100%;
                 min-height: auto;
                 padding: 15px;
             }
@@ -137,38 +178,58 @@
 
 <div class="container">
     <div class="controls">
-        <h2>Dados da Proposta</h2>
+        <h2>Personalizar Orçamento</h2>
         
         <div class="form-group">
-            <label>Prestador:</label>
-            <input type="text" id="inPrestador" value="Nome empresa">
+            <label>Empresa (Prestador):</label>
+            <input type="text" id="inPrestador" value="Minha Empresa de Reformas">
         </div>
         <div class="form-group">
             <label>CNPJ:</label>
-            <input type="text" id="inCnpj" value="52.136.585/0001-75">
+            <input type="text" id="inCnpj" value="00.000.000/0001-00">
         </div>
         <div class="form-group">
-            <label>Telefone:</label>
-            <input type="text" id="inTelefone" value="(21) 96333-00000">
+            <label>Contratante (Cliente):</label>
+            <input type="text" id="inContratante" value="Condomínio Solar das Palmeiras">
         </div>
+        
         <div class="form-group">
-            <label>Contratante:</label>
-            <input type="text" id="inContratante" value="CIEP XXXX">
-        </div>
-        <div class="form-group">
-            <label>Descrição do Serviço:</label>
-            <textarea id="inDescricao">Limpeza, restauração e vedação da laje da quadra de esportes, bem como a revitalização das arquibancadas da quadra (pintura da arquibancada e marcação da quadra de esportes), com fornecimento de materiais inclusos na execução</textarea>
-        </div>
-        <div class="form-group">
-            <label>Valor (R$):</label>
-            <input type="text" id="inValor" value="26.500,00">
-        </div>
-        <div class="form-group">
-            <label>Local e Data:</label>
-            <input type="text" id="inData" value="Rio de Janeiro, 06 de abril de 2026">
+            <label>Texto de Apresentação:</label>
+            <textarea id="inApresentacao">Apresentamos nossa proposta técnica e comercial para a execução de serviços especializados, garantindo a utilização de materiais de primeira linha e mão de obra capacitada.</textarea>
         </div>
 
-        <button class="btn-export" onclick="exportarPDF()">Exportar para PDF</button>
+        <div class="form-group">
+            <label>Descrição detalhada dos serviços:</label>
+            <textarea id="inDescricao">Limpeza técnica, reparos estruturais e pintura geral conforme discutido em visita técnica.</textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Valor Total (R$):</label>
+            <input type="text" id="inValor" value="5.800,00">
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+        <h3 style="font-size: 0.9rem; color: #555;">PAGAMENTO (OPCIONAL)</h3>
+
+        <div class="form-group">
+            <label>Forma de Pagamento:</label>
+            <input type="text" id="inFormaPagamento" placeholder="Ex: 50% entrada e 50% na entrega">
+        </div>
+        <div class="form-group">
+            <label>Chave PIX:</label>
+            <input type="text" id="inPix" placeholder="E-mail, CNPJ ou Celular">
+        </div>
+        <div class="form-group">
+            <label>Parcelamento:</label>
+            <input type="text" id="inParcelas" placeholder="Ex: Até 3x sem juros">
+        </div>
+
+        <div class="form-group">
+            <label>Local e Data:</label>
+            <input type="text" id="inData" value="Rio de Janeiro, 13 de abril de 2024">
+        </div>
+
+        <button class="btn-export" onclick="exportarPDF()">Gerar Orçamento PDF</button>
     </div>
 
     <div class="preview-wrapper">
@@ -178,105 +239,125 @@
             </div>
 
             <div class="info-grid">
-                <div><strong>Prestador:</strong> <span id="outPrestador"></span></div>
+                <div><strong>PRESTADOR:</strong> <span id="outPrestador"></span></div>
                 <div><strong>CNPJ:</strong> <span id="outCnpj"></span></div>
-                <div><strong>Telefone:</strong> <span id="outTelefone"></span></div>
-                <div style="margin-top: 10px;"><strong>Contratante:</strong> <span id="outContratante"></span></div>
+                <div style="grid-column: span 2; border-top: 1px solid #eee; pt: 5px; mt: 5px;">
+                    <strong>CONTRATANTE:</strong> <span id="outContratante"></span>
+                </div>
             </div>
 
             <div class="doc-section">
                 <h3>APRESENTAÇÃO</h3>
-                <p>A <span id="outPrestador2"></span> apresenta a presente proposta para execução de serviços de revitalização estrutural, visando a conservação do patrimônio e melhoria das condições físicas da unidade escolar.</p>
+                <p id="outApresentacao"></p>
             </div>
 
             <div class="doc-section">
-                <h3>ESCOPO DOS SERVIÇOS</h3>
+                <h3>ESCOPO E VALORES</h3>
                 <table>
                     <thead>
                         <tr>
-                            <th>Descrição do Serviço</th>
-                            <th style="width: 150px;">Valor (R$)</th>
+                            <th>Descrição dos Serviços / Materiais</th>
+                            <th style="width: 140px; text-align: right;">Total</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td id="outDescricao"></td>
-                            <td id="outValor"></td>
+                            <td id="outDescricao" style="white-space: pre-wrap;"></td>
+                            <td style="text-align: right; font-weight: bold;">R$ <span id="outValor"></span></td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
-            <div class="doc-section" style="font-weight: bold; margin-bottom: 30px;">
-                INVESTIMENTO TOTAL: R$ <span id="outValorTotal"></span>
+            <!-- Bloco de Pagamento (Só aparece se preenchido) -->
+            <div id="outPagamentoContainer" class="doc-section payment-box" style="display: none;">
+                <h3>CONDIÇÕES DE PAGAMENTO</h3>
+                <div id="outFormaPagamentoRow"><strong>Método:</strong> <span id="outFormaPagamento"></span></div>
+                <div id="outParcelasRow"><strong>Parcelamento:</strong> <span id="outParcelas"></span></div>
+                <div id="outPixRow" style="margin-top: 5px; color: #2c3e50;"><strong>Chave PIX para Depósito:</strong> <span id="outPix"></span></div>
             </div>
 
             <div class="doc-section">
-                <h3>COMPROMISSO TÉCNICO</h3>
-                <ul>
-                    <li>Execução por profissionais qualificados</li>
-                    <li>Utilização de materiais de qualidade</li>
-                    <li>Cumprimento de prazos acordados</li>
-                    <li>Entrega dentro dos padrões técnicos exigidos</li>
+                <h3>TERMOS TÉCNICOS</h3>
+                <ul style="font-size: 10pt;">
+                    <li>Validade desta proposta: 15 dias corridos.</li>
+                    <li>Garantia dos serviços conforme legislação vigente.</li>
+                    <li>Limpeza e organização do local mantidas durante a execução.</li>
                 </ul>
             </div>
 
             <div class="doc-footer">
-                Validade da proposta: 60 dias. <br>
-                <span id="outData"></span>.
+                <p><span id="outData"></span></p>
+                <br><br>
+                <div style="display: inline-block; width: 250px; border-top: 1px solid #000; text-align: center; font-size: 10pt;">
+                    Assinatura do Prestador
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // Função para atualizar a visualização em tempo real
     function atualizarPreview() {
-        document.getElementById('outPrestador').innerText = document.getElementById('inPrestador').value;
-        document.getElementById('outPrestador2').innerText = document.getElementById('inPrestador').value;
+        // Dados básicos
+        const prestador = document.getElementById('inPrestador').value;
+        document.getElementById('outPrestador').innerText = prestador;
         document.getElementById('outCnpj').innerText = document.getElementById('inCnpj').value;
-        document.getElementById('outTelefone').innerText = document.getElementById('inTelefone').value;
         document.getElementById('outContratante').innerText = document.getElementById('inContratante').value;
+        
+        // Apresentação e Descrição
+        document.getElementById('outApresentacao').innerText = document.getElementById('inApresentacao').value;
         document.getElementById('outDescricao').innerText = document.getElementById('inDescricao').value;
         
+        // Valores
         const valor = document.getElementById('inValor').value;
         document.getElementById('outValor').innerText = valor;
-        document.getElementById('outValorTotal').innerText = valor;
         
+        // Data
         document.getElementById('outData').innerText = document.getElementById('inData').value;
+
+        // Lógica do Bloco de Pagamento Opcional
+        const forma = document.getElementById('inFormaPagamento').value;
+        const pix = document.getElementById('inPix').value;
+        const parcelas = document.getElementById('inParcelas').value;
+        const container = document.getElementById('outPagamentoContainer');
+
+        if (forma || pix || parcelas) {
+            container.style.display = 'block';
+            
+            document.getElementById('outFormaPagamentoRow').style.display = forma ? 'block' : 'none';
+            document.getElementById('outFormaPagamento').innerText = forma;
+            
+            document.getElementById('outPixRow').style.display = pix ? 'block' : 'none';
+            document.getElementById('outPix').innerText = pix;
+            
+            document.getElementById('outParcelasRow').style.display = parcelas ? 'block' : 'none';
+            document.getElementById('outParcelas').innerText = parcelas;
+        } else {
+            container.style.display = 'none';
+        }
     }
 
-    // Adiciona listeners para todos os inputs atualizarem o preview enquanto o usuário digita
     const inputs = document.querySelectorAll('.controls input, .controls textarea');
     inputs.forEach(input => {
         input.addEventListener('input', atualizarPreview);
     });
 
-    // Atualiza o preview na primeira carga da página
     window.onload = atualizarPreview;
 
-    // Função para gerar o PDF
     function exportarPDF() {
         const elemento = document.getElementById('documento-pdf');
+        const nomeArquivo = 'Orcamento_' + document.getElementById('inContratante').value.replace(/\s+/g, '_') + '.pdf';
         
-        // Configurações do PDF para garantir tamanho e qualidade
         const opcoes = {
-            margin:       0,
-            filename:     'Proposta_Comercial.pdf',
+            margin:       [10, 0, 10, 0],
+            filename:     nomeArquivo,
             image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true },
+            html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
-        // Força a largura para A4 momentaneamente para garantir a quebra de linha correta no mobile
-        const larguraOriginal = elemento.style.width;
-        elemento.style.width = '210mm';
-
-        // Gera e faz o download
-        html2pdf().set(opcoes).from(elemento).save().then(() => {
-            // Restaura a largura original para o layout responsivo
-            elemento.style.width = larguraOriginal;
-        });
+        html2pdf().set(opcoes).from(elemento).save();
     }
 </script>
 
