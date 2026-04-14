@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerador de Propostas Profissional</title>
-    <!-- Carregando bibliotecas essenciais -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
@@ -114,15 +113,15 @@
 
         .document-a4 {
             background: var(--paper);
-            width: 210mm;
-            min-height: 297mm;
-            padding: 20mm 15mm;
-            box-sizing: border-box;
+            width: 210mm; /* Largura A4 Estrita */
+            min-height: 297mm; /* Altura A4 Estrita */
+            /* IMPORTANTE: O padding do CSS é que define as margens do PDF final */
+            padding: 20mm 15mm; 
+            box-sizing: border-box; /* Crucial para o cálculo da largura */
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
             font-size: 11pt;
             line-height: 1.5;
             color: #333;
-            /* Garante que o conteúdo seja renderizado corretamente pelo html2canvas */
             position: relative;
         }
 
@@ -404,30 +403,33 @@
         
         const nomeArquivo = 'Proposta_' + document.getElementById('inContratante').value.replace(/\s+/g, '_') + '.pdf';
         
-        // Configurações otimizadas para evitar "branco"
+        // Configurações CORRIGIDAS para evitar "torto"
         const opcoes = {
-            margin: [10, 10, 10, 10], // Margens físicas no PDF
+            // CORREÇÃO: Definimos margens ZERA no PDF físico.
+            // O conteúdo HTML (que já tem padding) ocupará a página inteira.
+            margin: 0, 
             filename: nomeArquivo,
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { 
-                scale: 2, 
+                scale: 2, // Mantemos a alta qualidade
                 useCORS: true, 
                 letterRendering: true,
                 scrollX: 0,
                 scrollY: 0,
-                windowWidth: 1000 // Força uma largura estável para renderização
+                // Reduzi ligeiramente a windowWidth para se ajustar melhor à captura A4 nativa
+                windowWidth: 800 
             },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
         try {
-            // Pequeno delay para garantir que o navegador terminou qualquer processamento de fonte
+            // Delay de segurança
             await new Promise(resolve => setTimeout(resolve, 500));
             
             await html2pdf().set(opcoes).from(elemento).save();
         } catch (error) {
             console.error('Erro ao gerar PDF:', error);
-            // Fallback simples para o usuário se algo der errado
+            // Fallback simples
             window.print(); 
         } finally {
             btn.disabled = false;
