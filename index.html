@@ -63,7 +63,7 @@
             color: #555;
             text-transform: uppercase;
         }
-        .form-group input, .form-group textarea {
+        .form-group input, .form-group textarea, .form-group select {
             width: 100%;
             padding: 10px 12px;
             border: 1px solid var(--border);
@@ -72,8 +72,9 @@
             font-family: inherit;
             font-size: 14px;
             transition: border-color 0.2s;
+            background-color: #fff;
         }
-        .form-group input:focus, .form-group textarea:focus {
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
             outline: none;
             border-color: var(--primary);
         }
@@ -100,7 +101,7 @@
         .btn-export:active { transform: translateY(0); }
         .btn-export:disabled { background-color: #bdc3c7; cursor: not-allowed; }
 
-        /* Área da Proposta (A4 Preview) */
+        /* Área da Proposta (A4 Preview) - LAYOUT PADRÃO (CLÁSSICO) */
         .preview-wrapper {
             flex: 2;
             overflow-x: auto;
@@ -113,16 +114,16 @@
 
         .document-a4 {
             background: var(--paper);
-            width: 210mm; /* Largura A4 Estrita */
-            min-height: 297mm; /* Altura A4 Estrita */
-            /* IMPORTANTE: O padding do CSS é que define as margens do PDF final */
+            width: 210mm; 
+            min-height: 297mm; 
             padding: 20mm 15mm; 
-            box-sizing: border-box; /* Crucial para o cálculo da largura */
+            box-sizing: border-box; 
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
             font-size: 11pt;
             line-height: 1.5;
             color: #333;
             position: relative;
+            transition: all 0.3s ease; /* Transição suave ao mudar layouts */
         }
 
         .doc-header { 
@@ -133,6 +134,7 @@
             color: var(--primary);
             border-bottom: 4px solid var(--primary);
             padding-bottom: 15px;
+            transition: all 0.3s ease;
         }
         
         .doc-section { margin-bottom: 30px; }
@@ -145,6 +147,7 @@
             background: #f8fafc;
             padding-top: 5px;
             padding-bottom: 5px;
+            transition: all 0.3s ease;
         }
         
         .info-grid { 
@@ -157,6 +160,7 @@
             padding: 20px;
             border: 1px solid #e2e8f0;
             border-radius: 4px;
+            transition: all 0.3s ease;
         }
         
         table {
@@ -168,6 +172,7 @@
             border: 1px solid #cbd5e0;
             padding: 12px;
             text-align: left;
+            transition: all 0.3s ease;
         }
         th { background-color: #f1f5f9; font-size: 10pt; color: var(--primary); }
 
@@ -198,6 +203,91 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
+        /* =========================================
+           NOVOS LAYOUTS CSS
+           ========================================= */
+
+        /* LAYOUT: MODERNO & LIMPO */
+        .layout-modern .doc-header {
+            text-align: left;
+            border-bottom: none;
+            border-left: 8px solid var(--accent);
+            padding-left: 15px;
+            padding-bottom: 0;
+            color: #2c3e50;
+        }
+        .layout-modern .info-grid {
+            background: transparent;
+            border: none;
+            border-top: 2px solid #edf2f7;
+            border-bottom: 2px solid #edf2f7;
+            padding: 15px 0;
+            border-radius: 0;
+        }
+        .layout-modern .doc-section h3 {
+            background: transparent;
+            border-left: none;
+            border-bottom: 2px solid var(--accent);
+            padding-left: 0;
+            color: #2c3e50;
+        }
+        .layout-modern table th {
+            background-color: transparent;
+            border-top: 2px solid #cbd5e0;
+            border-bottom: 2px solid #cbd5e0;
+            color: #4a5568;
+            border-left: none;
+            border-right: none;
+        }
+        .layout-modern table td {
+            border-left: none;
+            border-right: none;
+            border-top: none;
+            border-bottom: 1px solid #edf2f7;
+        }
+        .layout-modern .payment-box {
+            border: 1px solid #e2e8f0;
+            background: #fcfcfc;
+            border-left: 4px solid var(--accent);
+        }
+
+        /* LAYOUT: CORPORATIVO SÓLIDO */
+        .layout-corporate .doc-header {
+            background-color: var(--primary);
+            color: white;
+            padding: 20px;
+            border-bottom: none;
+            border-radius: 4px;
+            text-align: left;
+        }
+        .layout-corporate .info-grid {
+            background: #f8fafc;
+            border: 1px solid #cbd5e0;
+            border-top: 4px solid var(--primary);
+        }
+        .layout-corporate .doc-section h3 {
+            background-color: var(--primary);
+            color: white;
+            border-left: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+        }
+        .layout-corporate table th {
+            background-color: var(--primary);
+            color: white;
+            border: 1px solid var(--primary);
+        }
+        .layout-corporate table td {
+            border: 1px solid #cbd5e0;
+        }
+        .layout-corporate .payment-box {
+            border: none;
+            background: #f1f5f9;
+            border-top: 4px solid var(--primary);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        /* Responsividade */
         @media (max-width: 850px) {
             .preview-wrapper { padding: 10px; background: none; }
             .document-a4 {
@@ -215,6 +305,16 @@
 <div class="container">
     <div class="controls">
         <h2>Personalizar Orçamento</h2>
+
+        <!-- NOVO: Seletor de Layout -->
+        <div class="form-group" style="background: #f8fafc; padding: 15px; border-radius: 6px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
+            <label style="color: var(--primary);">Design do Modelo:</label>
+            <select id="inLayout" onchange="mudarLayout()">
+                <option value="layout-default">Clássico (Padrão Original)</option>
+                <option value="layout-modern">Moderno & Limpo (Sem bordas)</option>
+                <option value="layout-corporate">Corporativo Sólido (Alto Contraste)</option>
+            </select>
+        </div>
         
         <div class="form-group">
             <label>Empresa (Prestador):</label>
@@ -272,7 +372,8 @@
     </div>
 
     <div class="preview-wrapper">
-        <div class="document-a4" id="documento-pdf">
+        <!-- Adicionada classe padrão 'layout-default' -->
+        <div class="document-a4 layout-default" id="documento-pdf">
             <div class="doc-header">
                 PROPOSTA TÉCNICA E COMERCIAL
             </div>
@@ -309,10 +410,10 @@
             </div>
 
             <div id="outPagamentoContainer" class="doc-section payment-box" style="display: none;">
-                <h3 style="background: none; border: none; padding-left: 0;">CONDIÇÕES DE PAGAMENTO</h3>
+                <h3 style="background: none; border: none; padding-left: 0; color: inherit;">CONDIÇÕES DE PAGAMENTO</h3>
                 <div id="outFormaPagamentoRow"><strong>Método:</strong> <span id="outFormaPagamento"></span></div>
                 <div id="outParcelasRow"><strong>Parcelamento:</strong> <span id="outParcelas"></span></div>
-                <div id="outPixRow" style="margin-top: 10px; color: #1a202c; padding: 10px; background: #ebf8ff; border-radius: 4px;">
+                <div id="outPixRow" style="margin-top: 10px; color: #1a202c; padding: 10px; background: rgba(66, 153, 225, 0.1); border-radius: 4px;">
                     <strong>Chave PIX:</strong> <span id="outPix" style="font-family: monospace; font-size: 11pt;"></span>
                 </div>
             </div>
@@ -357,6 +458,15 @@
         parcelasRow: document.getElementById('outParcelasRow')
     };
 
+    // FUNÇÃO NOVA: Trocar os Layouts
+    function mudarLayout() {
+        const doc = document.getElementById('documento-pdf');
+        const layoutSelecionado = document.getElementById('inLayout').value;
+        
+        // Mantém a classe base 'document-a4' e aplica a escolhida
+        doc.className = 'document-a4 ' + layoutSelecionado;
+    }
+
     function atualizarPreview() {
         const prestador = document.getElementById('inPrestador').value;
         outElements.prestador.innerText = prestador;
@@ -390,7 +500,10 @@
         input.addEventListener('input', atualizarPreview);
     });
 
-    window.onload = atualizarPreview;
+    window.onload = () => {
+        atualizarPreview();
+        mudarLayout(); // Garante que inicie com o visual selecionado
+    };
 
     async function exportarPDF() {
         const btn = document.getElementById('btnExportar');
@@ -405,31 +518,25 @@
         
         // Configurações CORRIGIDAS para evitar "torto"
         const opcoes = {
-            // CORREÇÃO: Definimos margens ZERA no PDF físico.
-            // O conteúdo HTML (que já tem padding) ocupará a página inteira.
             margin: 0, 
             filename: nomeArquivo,
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { 
-                scale: 2, // Mantemos a alta qualidade
+                scale: 2, 
                 useCORS: true, 
                 letterRendering: true,
                 scrollX: 0,
                 scrollY: 0,
-                // Reduzi ligeiramente a windowWidth para se ajustar melhor à captura A4 nativa
                 windowWidth: 800 
             },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
         try {
-            // Delay de segurança
             await new Promise(resolve => setTimeout(resolve, 500));
-            
             await html2pdf().set(opcoes).from(elemento).save();
         } catch (error) {
             console.error('Erro ao gerar PDF:', error);
-            // Fallback simples
             window.print(); 
         } finally {
             btn.disabled = false;
